@@ -77,36 +77,30 @@ print(len(list_review_url))
 print(movie_titles[:5])
 print(len(movie_titles))
 
-for url in list_review_url:
+reviews = []
+for url in list_review_url[:5]:
     driver.get(url)
     time.sleep(0.5)
-    reviews = []
     review = ''
-    for i in range(1,10):
-        #리뷰 내용에 더보기 있으면 더보기들어가서 리뷰내용 가져올려고하고 더보기 없으면 리뷰 타이틀만 가져옴
-        #각각의 리뷰 하나하나 xpath로 접근해서 가져오니 더보기로 back으로 뒤로가기해서 다시 순서진행함
+    for i in range(1, 10):
+        # 리뷰 내용에 더보기 있으면 더보기들어가서 리뷰내용 가져올려고하고 더보기 없으면 리뷰 타이틀만 가져옴
+        # 각각의 리뷰 하나하나 xpath로 접근해서 가져오니 더보기로 back으로 뒤로가기해서 다시 순서진행함
         review_title_xpath = '//*[@id="contents"]/div[2]/div[2]/div[{}]/div/div[3]/a[1]/div'.format(i)
         review_more_xpath = '//*[@id="contents"]/div[2]/div[2]/div[{}]/div/div[3]/div/button'.format(i)
-
         try:
             review_more = driver.find_element(By.XPATH, review_more_xpath)
             driver.execute_script('arguments[0].click();', review_more)
-            time.sleep(2)
+            time.sleep(1)
             review_xpath = '//*[@id="contents"]/div[2]/div[1]/div/section[2]/div/div'
             review = review + ' ' + driver.find_element(By.XPATH, review_xpath).text
-            driver.back()   #이걸로 더보기 들어간후 뒤로가기해서 다시 기본리뷰로감
+            driver.back()    #이걸로 더보기 들어간후 뒤로가기해서 다시 기본리뷰로감
+            time.sleep(1)   #뒤로가기하고 페이지 뜰때까지 조금 기다려줌.
         except:
             review = review + ' ' + driver.find_element(By.XPATH, review_title_xpath).text
         # 더보기 없을때 오류발생으로해서 그냥 리뷰타이틀 텍스트 가져오게함.
     print(review)
     reviews.append(review)
+print(reviews[:5])
+print(len(reviews))
 
 
-
-
-# reviews = []
-# for i in range(1, 20)
-#     review = driver.find_element('xpath',
-#                                  '//*[@id="contents"]/div[2]/div[2]/div[{}]/div/div[3]/a[1]/div'.format(i)).text
-#     review = re.compile('[^가-힣]').sub('', review)
-#     reviews.append(review)
