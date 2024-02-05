@@ -52,13 +52,13 @@ driver.execute_script('arguments[0].click();',button_ok)
 # 자바스크립트로 버튼이 코딩되어 있어서 그냥 .click이나 enter 말고 이렇게 해야함
 
 
-for i in range(3):
+for i in range(25):
     driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
     time.sleep(1)
 
 list_review_url = []
 movie_titles = []
-for i in range(1, 50):
+for i in range(1, 700):
     base = driver.find_element(By.XPATH, f'//*[@id="contents"]/div/div/div[3]/div[2]/div[{i}]/a').get_attribute("href")
     #XPATH를 사용하여 웹 페이지에서 해당 링크를 찾고, 찾은 링크의 href 속성 값을 base에 저장합니다.
     #영화 검사로 클릭해보면 <a data-v 뭐 이런식으로 a적혀있는 a태그가 있는데 그거를 클릭하고 xpath가져오고 뒤에 href저거 적어주면 영화 클릭해서 들어가진곳의 주소가 가져와짐
@@ -77,12 +77,13 @@ print(len(list_review_url))
 print(movie_titles[:5])
 print(len(movie_titles))
 
+
 reviews = []
-for url in list_review_url[:5]:
+for idx, url in enumerate(list_review_url[551:600]):
     driver.get(url)
-    time.sleep(0.5)
+    time.sleep(1)
     review = ''
-    for i in range(1, 10):
+    for i in range(1, 31):
         # 리뷰 내용에 더보기 있으면 더보기들어가서 리뷰내용 가져올려고하고 더보기 없으면 리뷰 타이틀만 가져옴
         # 각각의 리뷰 하나하나 xpath로 접근해서 가져오니 더보기로 back으로 뒤로가기해서 다시 순서진행함
         review_title_xpath = '//*[@id="contents"]/div[2]/div[2]/div[{}]/div/div[3]/a[1]/div'.format(i)
@@ -95,12 +96,31 @@ for url in list_review_url[:5]:
             review = review + ' ' + driver.find_element(By.XPATH, review_xpath).text
             driver.back()    #이걸로 더보기 들어간후 뒤로가기해서 다시 기본리뷰로감
             time.sleep(1)   #뒤로가기하고 페이지 뜰때까지 조금 기다려줌.
-        except:
-            review = review + ' ' + driver.find_element(By.XPATH, review_title_xpath).text
+
+        except NoSuchElementException as e: #더보기가 없을때 일어나는 에러
+            print('더보기',e)
+            try:
+
+                review = review + ' ' + driver.find_element(By.XPATH, review_title_xpath).text
+            # 더보기 누르려했는데 없어서 뒤로가서 긁으려했는데 리뷰개수가 부족해서 안긁히면 에러발생함
+            #여기서 에러가 나면 젤 마지막 except으로 가서 에러 처리함
         # 더보기 없을때 오류발생으로해서 그냥 리뷰타이틀 텍스트 가져오게함.
+            except:
+                print('review title error')
+        except StaleElementReferenceException as e: #아예 검색할 대상이 없을때 발생하는 에러
+            print('stale',e)
+            time.sleep(1)
+
+        except: #그외 모든 에러
+            print('error')
+
     print(review)
     reviews.append(review)
 print(reviews[:5])
 print(len(reviews))
+
+df = pd.DataFrame({'titles':movie_titles[551:600], 'reviews':reviews})
+today = datetime.datetime.now().strftime('%Y%m%d')
+df.to_csv('./crawling_data/reviews_600.csv', index=False)
 
 
